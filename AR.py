@@ -2,12 +2,14 @@ import numpy as np
 from YuleWalker import yule_walker
 
 class ARModel:
-    def __init__(self, p: int):
+    def __init__(self, p: int, phi: np.ndarray = None, variance: float = None):
         '''
         Initialize AR(p) model
 
         Parameters:
             p (int): Order of the autoregressive model
+            phi (np.ndarray, optional): AR coefficients
+            variance (float, optional): Variance of white noise
         '''
         self.p = p
         self.phi = None
@@ -18,8 +20,11 @@ class ARModel:
     def fit(self, time_series: np.ndarray):
         '''
         Fit the AR(p) model to the given time series using Yule-Walker equations
+
+        Parameters:
+            time_series (np.ndarray): Input time series to be fit
         '''
-        # Store the fitted parameters
+
         self.phi, self.variance = yule_walker(time_series, self.p)
 
         n = len(time_series)
