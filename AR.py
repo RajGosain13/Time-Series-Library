@@ -55,3 +55,24 @@ class ARModel:
             values.append(next_val)
 
         return np.array(forecast)
+    
+    def simulate(self, n: int) -> np.ndarray:
+        '''
+        Simulate a time series for an AR(p) model
+
+        Parameters:
+            n (int): Number of time steps to simulate
+
+        Returns:
+            np.ndarray: Simulated time series of length n
+        '''
+        if self.phi is None or self.variance is None:
+            raise RuntimeError("phi and variance must be specified to simulate")
+        
+        time_series = np.zeros(n)
+        noise = np.random.normal(0, np.sqrt(self.variance), size=n)
+
+        for t in range(self.p, n):
+            time_series[t] = np.dot(self.phi, time_series[t - self.p: t][::-1]) + noise[t]
+
+        return time_series
