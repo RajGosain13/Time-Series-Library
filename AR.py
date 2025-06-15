@@ -7,7 +7,7 @@ class ARModel:
         Initialize AR(p) model
 
         Parameters:
-            p (int): Order of the autoregressive model
+            p (int): Order of the AR model
             phi (np.ndarray, optional): AR coefficients
             variance (float, optional): Variance of white noise
         '''
