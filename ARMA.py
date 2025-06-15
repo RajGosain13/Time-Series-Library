@@ -49,14 +49,14 @@ class ARMAModel:
 
         return x[max_lag:]
     
-    def predict(self, past_ar: np.ndarray, past_ma: np.ndarray, steps: int = 1) -> np.ndarray:
+    def predict(self, past_ar: np.ndarray, past_errors: np.ndarray, steps: int = 1) -> np.ndarray:
         '''
-        Simulate a time series for an AR(p) model
+        Predict a time series for an ARMA(p,q) model
 
         Parameters:
             past_ar (np.ndarray): Previous observations of the AR portion
-            past_ma (np.ndarray): Previous observations of the MA portion
-            steps (int, optional): Number of time steps into the future to predict
+            past_errors (np.ndarray): Previous observations of the MA portion
+            steps (int): Number of time steps into the future to predict
 
         Returns:
             np.ndarray: Prediction time series of length steps
@@ -67,12 +67,15 @@ class ARMAModel:
         preds = []
 
         observed = list(past_ar[-self.p:])
-        errors = list(past_ma[-self.q:])
+        errors = list(past_errors[-self.q:])
 
         for _ in range(steps):
             ar =np.dot(self.phi, observed[-self.p:][::-1]) if self.p > 0 else 0
             ma = np.dot(self.theta, errors[-self.q:][::-1]) if self.q > 0 else 0
             pred = ar + ma
             preds.append(pred)
+            # Assume error = 0 for future steps
+            observed.append(pred)
+            errors.append(0)
 
         return np.array(preds)

@@ -12,8 +12,8 @@ class ARModel:
             variance (float, optional): Variance of white noise
         '''
         self.p = p
-        self.phi = None
-        self.variance = None
+        self.phi = phi
+        self.variance = variance
         self.fitted_vals = None
         self.residuals = None
 
