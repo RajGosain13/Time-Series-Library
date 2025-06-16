@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.optimize import minimize
 
 class MAModel:
     def __init__(self, q: int, theta: np.ndarray = None, variance: float = None):
@@ -13,6 +14,7 @@ class MAModel:
         self.q = q
         self.theta = theta
         self.variance = variance
+        self.residuals = None
 
         if self.theta is not None and len(self.theta) != self.q:
             raise ValueError("Length of theta must match MA order q")
@@ -57,3 +59,28 @@ class MAModel:
             raise ValueError("Length of past errors must match MA order q")
     
         return np.dot(self.theta, past_errors[::-1])
+    
+    def fit(self, time_series: np.ndarray):
+        n = len(time_series)
+        q = self.q
+
+        def objective(theta):
+            residuals = np.zeros(n)
+            for t in range(q, n):
+                ma = np.dot(theta, residuals[t-q:t][::-1]) if q > 0 else 0
+                residuals[t] = time_series[t] - ma
+            return np.sum(residuals[q:] ** 2)
+        
+        initial = np.zeros(q)
+        result = minimize(objective, initial, method='BFGS')
+
+        if not result.success:
+            raise RuntimeError(f'MA fit failed: {result.message}')
+        
+        self.theta = result.x
+        self.residuals = np.zeros(n)
+        for t in range(q, n):
+            ma = np.dot(self.theta, self.residuals[t-q:t][::-1]) if q > 0 else 0
+            self.residuals[t] = time_series[t] - ma
+
+        self.variance = np.var(self.residuals[q:])
