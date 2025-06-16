@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.optimize import minimize
 
 class ARMAModel:
     def __init__(self, p: int, q: int, phi: np.ndarray = None, theta: np.ndarray = None, variance: float = None):
@@ -79,3 +80,35 @@ class ARMAModel:
             errors.append(0)
 
         return np.array(preds)
+    
+
+    def fit(self, time_series: np.ndarray):
+        n = len(time_series)
+        p, q = self.p, self.q
+
+        def objective(params):
+            phi = params[:p]
+            theta = params[p:p+q]
+            residuals = np.zeros(n)
+            for t in range(max(p, q), n):
+                ar = np.dot(phi, time_series[t-p:t][::-1]) if p > 0 else 0
+                ma = np.dot(theta, time_series[t-q:t][::-1]) if q > 0 else 0
+                residuals[t] = time_series[t] - ar - ma
+            return np.sum(residuals[max(p, q):] ** 2)
+        
+        initial = np.zeros(p + q)
+        result = minimize(objective, initial, method='BFGS')
+
+        if not result.success:
+            raise RuntimeError('ARMA fit failed: ' + result.message)
+        
+        self.phi = result.x[:p] if p > 0 else np.array([])
+        self.theta = result.x[p:p+q] if q > 0 else np.array([])
+
+        self.residuals = np.zeros(n)
+        for t in range(max(p, q), n):
+            ar = np.dot(self.phi, time_series[t-p:t][::-1]) if p > 0 else 0
+            ma = np.dot(self.theta, self.residuals[t-q:t][::-1]) if q > 0 else 0
+            self.residuals[t] = time_series[t] - ar - ma
+
+        self.variance = np.var(self.residuals[max(p, q):])
