@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.stats as stats
+from Core import autocovariance_function
 
 def plot_series(time_series: np.ndarray, title: str = 'Time Series', xlabel: str = 'Time', ylabel: str = 'Value'):
     plt.figure(figsize=(10, 4))
@@ -57,5 +59,34 @@ def plot_forecast(true_series: np.ndarray, forecast: np.ndarray, stderr: float =
     plt.ylabel("Value")
     plt.legend()
     plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+def plot_residuals(residuals: np.ndarray):
+    plt.figure(figsize=(10, 4))
+    plt.plot(residuals, label="Residuals", color='purple')
+    plt.axhline(0, color='black', linewidth=0.8, linestyle='--')
+    plt.title("Residual Plot")
+    plt.xlabel("Time")
+    plt.ylabel("Residual")
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+def plot_acf_residuals(residuals: np.ndarray, lags: int=20):
+    acf_vals = [autocovariance_function(residuals, lag) / np.var(residuals) for lag in range(lags+1)]
+    plt.figure(figsize=(8, 4))
+    plt.stem(range(len(acf_vals)), acf_vals, use_line_collection=True)
+    plt.axhline(0, color='black', linewidth=0.8)
+    plt.title("ACF of Residuals")
+    plt.xlabel("Lag")
+    plt.ylabel("ACF")
+    plt.tight_layout()
+    plt.show()
+
+def qq_plot_residuals(residuals: np.ndarray):
+    plt.figure(figsize=(6, 6))
+    stats.probplot(residuals, dist="norm", plot=plt)
+    plt.title("Q-Q Plot of Residuals")
     plt.tight_layout()
     plt.show()
