@@ -89,4 +89,11 @@ class ARIMAModel:
             simulated = simulated.cumsum()
         return simulated
     
-    
+    def fit(self, time_series: np.ndarray):
+        self.original_series = time_series.copy()
+        differenced = time_series.copy()
+        for _ in range(self.d):
+            differenced = np.diff(differenced)
+
+        self.differenced_series = differenced
+        self.model.fit(self.differenced_series)
